@@ -60,7 +60,7 @@ job "zookeeper" {
                 hostname = "${ZOOKEEPER_HOST}"
 #                ipv4_address = "${ZOOKEEPER_IP}"
                 labels {
-                    group = "zk-docker"
+                    group = "confluent-zk"
                 }
                 extra_hosts = [
                     "node1:192.168.33.10",
@@ -99,10 +99,11 @@ job "zookeeper" {
                 port = "zk"
                 address_mode = "driver"
                 check {
-                    type = "tcp"
+                    type = "script"
                     port = "zk"
                     interval = "10s"
                     timeout = "2s"
+                    command = "/home/vagrant/scripts/check-zk.sh"
                     check_restart {
                         limit = 3
                         grace = "90s"
