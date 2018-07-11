@@ -46,7 +46,7 @@ job "zookeeper" {
                 # generated at deployment
                 {{$i := env "NOMAD_ALLOC_INDEX"}}
                 ZOOKEEPER_SERVER_ID   = {{$i | parseInt | add 1}}
-                ZOOKEEPER_SERVERS     = {{if eq $i "0"}}0.0.0.0:2888:3888;node3:2888:3888;node4:2888:3888{{else}}{{if eq $i "1"}}node2:2888:3888;0.0.0.0:2888:3888;node4:2888:3888{{else}}node2:2888:3888;node4:2888:3888;0.0.0.0:2888:3888{{end}}{{end}}
+                ZOOKEEPER_SERVERS     = 192.168.33.11:2888:3888;192.168.33.12:2888:3888;192.168.33.13:2888:3888
                 ZOOKEEPER_HOST        = {{if eq $i "0"}}node2{{else}}{{if eq $i "1"}}node3{{else}}node4{{end}}{{end}}
                 ZOOKEEPER_IP          = {{if eq $i "0"}}192.168.33.11{{else}}{{if eq $i "1"}}192.168.33.12{{else}}192.168.33.13{{end}}{{end}}
                 ZOOKEEPER_CLIENT_PORT = 2181
