@@ -4,4 +4,9 @@
 #
 # Execute this script by doing the following:
 # vagrant ssh node2 -c /home/vagrant/jobs/submit_zk.sh
-NOMAD_ADDR="http://192.168.33.11:4646" nomad job run /home/vagrant/jobs/zookeeper.hcl
+if [ $1 == "zk" ]; then
+  JOB="zookeeper"
+else
+  JOB=$1
+fi
+NOMAD_ADDR="http://192.168.33.11:4646" nomad job run /home/vagrant/jobs/${JOB}.hcl

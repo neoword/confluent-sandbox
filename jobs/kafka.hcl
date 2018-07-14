@@ -1,5 +1,5 @@
 # Zookeeper
-job "zookeeper" {
+job "kafka" {
     region = "global"
     datacenters = ["dc1"]
     type = "service"
@@ -14,13 +14,17 @@ job "zookeeper" {
         attribute = "${attr.kernel.name}"
         value = "linux"
     }
-    # ensure we are only on the nodes that have ZK enabled... ensure these are only 3 nodes
+
+    # ensure we are only on the nodes that have kafka enabled... ensure these are only 3 nodes
+    # TODO - Need to add meta.kafka to be kafka specific (#8)
+    # TODO - Right now piggy-back on ZK meta. Need to add a separate, distinct kafka meta.
     constraint {
         attribute = "${meta.zookeeper}"
         value = "true"
     }
+
     # define group
-    group "zk-group" {
+    group "kafka-group" {
 
         # define the number of times the tasks need to be executed
         count = 3
@@ -39,26 +43,26 @@ job "zookeeper" {
             mode = "fail"
         }
 
-        task "zookeeper" {
+        task "kafka" {
             driver = "docker"
             template {
               data        = <<EOT
                 # generated at deployment
                 {{$i := env "NOMAD_ALLOC_INDEX"}}
-                ZOOKEEPER_SERVER_ID   = {{$i | parseInt | add 1}}
-                ZOOKEEPER_SERVERS     = {{if eq $i "0"}}0.0.0.0:2888:3888;192.168.33.12:2888:3888;192.168.33.13:2888:3888{{else}}{{if eq $i "1"}}192.168.33.11:2888:3888;0.0.0.0:2888:3888;192.168.33.13:2888:3888{{else}}192.168.33.11:2888:3888;192.168.33.12:2888:3888;0.0.0.0:2888:3888{{end}}{{end}}
-                ZOOKEEPER_HOST        = {{if eq $i "0"}}node2{{else}}{{if eq $i "1"}}node3{{else}}node4{{end}}{{end}}
-                ZOOKEEPER_IP          = {{if eq $i "0"}}192.168.33.11{{else}}{{if eq $i "1"}}192.168.33.12{{else}}192.168.33.13{{end}}{{end}}
-                ZOOKEEPER_CLIENT_PORT = 2181
+                KAFKA_BROKER_ID             = {{$i | parseInt | add 1}}
+                KAFKA_ZOOKEEPER_CONNECT     = node2:2181,node3:2181,node4:2181
+                KAFKA_ADVERTISED_HOSTNAME   = {{if eq $i "0"}}node2{{else}}{{if eq $i "1"}}node3{{else}}node4{{end}}{{end}}
+                KAFKA_ADVERTISED_LISTENERS  = PLAINTEXT://node{{$i | parseInt | add 2}}:9092
+                KAFKA_DEFAULT_REPLICATION_FACTOR = 3
               EOT
-              destination = "zk-env/zookeeper.env"
+              destination = "kafka-env/kafka.env"
               env         = true
             }
             config {
-                image = "confluentinc/cp-zookeeper:4.1.1-2"
-                hostname = "${ZOOKEEPER_HOST}"
+                image = "confluentinc/cp-kafka:4.1.1-2"
+                hostname = "${KAFKA_ADVERTISED_HOSTNAME}"
                 labels {
-                    group = "confluent-zk"
+                    group = "confluent-kafka"
                 }
                 extra_hosts = [
                     "node1:192.168.33.10",
@@ -67,42 +71,33 @@ job "zookeeper" {
                     "node4:192.168.33.13"
                 ]
                 port_map {
-                    zk = 2181
-                    zk_leader = 2888
-                    zk_election = 3888
+                    kafka = 9092
                 }
                 volumes = [
-                    "/opt/zookeeper/datadir:/var/lib/zookeeper/data",
-                    "/opt/zookeeper/log:/var/lib/zookeeper/log"
+                    "/opt/kafka/data:/var/lib/kafka/data",
+                    "/opt/kafka/secrets:/etc/kafka/secrets"
                 ]
             }
             resources {
-                cpu = 200
-                memory = 256
+                cpu = 1000
+                memory = 512
                 network {
                     mbits = 10
-                    port "zk" {
-                      static = 2181
-                    }
-                    port "zk_leader" {
-                      static = 2888
-                    }
-                    port "zk_election" {
-                      static = 3888
+                    port "kafka" {
+                      static = 9092
                     }
                 }
             }
             service {
-                tags = ["zookeeper"]
-                port = "zk"
+                tags = ["kafka"]
+                port = "kafka"
                 address_mode = "driver"
-# TODO Need to setup appropriate
+# TODO - Need to add a health check
 #                check {
-#                    type = "script"
+#                    type = "tcp"
+#                    port = "kafka"
 #                    interval = "10s"
 #                    timeout = "2s"
-#                    args = [ "echo ruok | nc `hostname` 2181 | grep -q imok" ]
-#                    command = "/bin/bash"
 #                    check_restart {
 #                        limit = 3
 #                        grace = "90s"
