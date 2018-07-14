@@ -17,14 +17,26 @@ running vagrant node.
 > bin/init-node.sh
 ```
 
-## Start Confluent Zookeeper
+Ensure the docker images are pre-loaded on each node.
 
 ```
-> bin/start-zk.sh
+> bin/pull-images.sh
 ```
 
-## Stop Confluent Zookeeper
+## Confluent Zookeeper
 
 ```
-> bin/stop-zk.sh
+> # to start zookeeper
+> bin/start.sh zk
+> # to stop zookeeper
+> bin/stop.sh zk
+```
+
+## Confluent Kafka
+
+```
+> # to start kafka
+> bin/start.sh kafka
+> # to stop kafka
+> bin/stop.sh kafka
 ```
