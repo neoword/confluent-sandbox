@@ -16,7 +16,7 @@ job "kafka" {
     }
 
     # ensure we are only on the nodes that have kafka enabled... ensure these are only 3 nodes
-    # FIXME - Add an issue for making this kafka-specific and update the comment
+    # TODO - Need to add meta.kafka to be kafka specific (#8)
     # TODO - Right now piggy-back on ZK meta. Need to add a separate, distinct kafka meta.
     constraint {
         attribute = "${meta.zookeeper}"
