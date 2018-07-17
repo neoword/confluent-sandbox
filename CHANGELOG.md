@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.3
+* Clean kafka dir scripts added (#11)
+* Add meta.constraint that is Kafka specific (#10)
+
 ## v0.2
 * Add support for confluent kafka ( #7 )
 
