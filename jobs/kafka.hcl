@@ -19,7 +19,7 @@ job "kafka" {
     # TODO - Need to add meta.kafka to be kafka specific (#8)
     # TODO - Right now piggy-back on ZK meta. Need to add a separate, distinct kafka meta.
     constraint {
-        attribute = "${meta.zookeeper}"
+        attribute = "${meta.kafka}"
         value = "true"
     }
 
