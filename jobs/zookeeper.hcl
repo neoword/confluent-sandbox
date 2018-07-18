@@ -1,4 +1,6 @@
-# Zookeeper
+# Nomad job for zookeeper
+# DISCLAIMER: This is intended for learning purposes only. It has not been tested for PRODUCTION environments.
+
 job "zookeeper" {
     region = "global"
     datacenters = ["dc1"]
@@ -44,18 +46,22 @@ job "zookeeper" {
             template {
               data        = <<EOT
                 # generated at deployment
+                CONFLUENT_VERSION = 4.1.1-2
                 {{$i := env "NOMAD_ALLOC_INDEX"}}
-                ZOOKEEPER_SERVER_ID   = {{$i | parseInt | add 1}}
-                ZOOKEEPER_SERVERS     = {{if eq $i "0"}}0.0.0.0:2888:3888;192.168.33.12:2888:3888;192.168.33.13:2888:3888{{else}}{{if eq $i "1"}}192.168.33.11:2888:3888;0.0.0.0:2888:3888;192.168.33.13:2888:3888{{else}}192.168.33.11:2888:3888;192.168.33.12:2888:3888;0.0.0.0:2888:3888{{end}}{{end}}
-                ZOOKEEPER_HOST        = {{if eq $i "0"}}node2{{else}}{{if eq $i "1"}}node3{{else}}node4{{end}}{{end}}
-                ZOOKEEPER_IP          = {{if eq $i "0"}}192.168.33.11{{else}}{{if eq $i "1"}}192.168.33.12{{else}}192.168.33.13{{end}}{{end}}
-                ZOOKEEPER_CLIENT_PORT = 2181
+                ZOOKEEPER_SERVER_ID={{$i | parseInt | add 1}}
+                ZOOKEEPER_SERVERS={{if eq $i "0"}}0.0.0.0:2888:3888;192.168.33.12:2888:3888;192.168.33.13:2888:3888{{else}}{{if eq $i "1"}}192.168.33.11:2888:3888;0.0.0.0:2888:3888;192.168.33.13:2888:3888{{else}}192.168.33.11:2888:3888;192.168.33.12:2888:3888;0.0.0.0:2888:3888{{end}}{{end}}
+                ZOOKEEPER_HOST={{if eq $i "0"}}node2{{else}}{{if eq $i "1"}}node3{{else}}node4{{end}}{{end}}
+                ZOOKEEPER_IP={{if eq $i "0"}}192.168.33.11{{else}}{{if eq $i "1"}}192.168.33.12{{else}}192.168.33.13{{end}}{{end}}
+                ZOOKEEPER_CLIENT_PORT=2181
+                ZOOKEEPER_TICK_TIME=2000
+                ZOOKEEPER_SYNC_LIMIT=20
+                ZOOKEEPER_INIT_LIMIT=10
               EOT
               destination = "zk-env/zookeeper.env"
               env         = true
             }
             config {
-                image = "confluentinc/cp-zookeeper:4.1.1-2"
+                image = "confluentinc/cp-zookeeper:${CONFLUENT_VERSION}"
                 hostname = "${ZOOKEEPER_HOST}"
                 labels {
                     group = "confluent-zk"
@@ -80,7 +86,7 @@ job "zookeeper" {
                 cpu = 200
                 memory = 256
                 network {
-                    mbits = 10
+                    mbits = 1
                     port "zk" {
                       static = 2181
                     }
@@ -93,6 +99,7 @@ job "zookeeper" {
                 }
             }
             service {
+                name = "zookeeper"
                 tags = ["zookeeper"]
                 port = "zk"
                 address_mode = "driver"

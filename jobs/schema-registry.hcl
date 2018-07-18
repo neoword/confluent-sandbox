@@ -1,5 +1,7 @@
-# Zookeeper
-job "kafka" {
+# Nomad job for schema-registry
+# DISCLAIMER: This is intended for learning purposes only. It has not been tested for PRODUCTION environments.
+
+job "schema-registry" {
     region = "global"
     datacenters = ["dc1"]
     type = "service"
@@ -19,17 +21,17 @@ job "kafka" {
     # TODO - Need to add meta.kafka to be kafka specific (#8)
     # TODO - Right now piggy-back on ZK meta. Need to add a separate, distinct kafka meta.
     constraint {
-        attribute = "${meta.zookeeper}"
+        attribute = "${meta.schema-registry}"
         value = "true"
     }
 
     # define group
-    group "kafka-group" {
+    group "sr-group" {
 
         # define the number of times the tasks need to be executed
-        count = 3
+        count = 1
 
-        # ensure we are on 3 different nodes
+        # ensure we are on different nodes
         constraint {
             operator  = "distinct_hosts"
             value     = "true"
@@ -43,24 +45,23 @@ job "kafka" {
             mode = "fail"
         }
 
-        task "kafka" {
+        task "schema-registry" {
             driver = "docker"
             template {
               data        = <<EOT
                 # generated at deployment
-                {{$i := env "NOMAD_ALLOC_INDEX"}}
-                KAFKA_BROKER_ID             = {{$i | parseInt | add 1}}
-                KAFKA_ZOOKEEPER_CONNECT     = node2:2181,node3:2181,node4:2181
-                KAFKA_ADVERTISED_HOSTNAME   = {{if eq $i "0"}}node2{{else}}{{if eq $i "1"}}node3{{else}}node4{{end}}{{end}}
-                KAFKA_ADVERTISED_LISTENERS  = PLAINTEXT://node{{$i | parseInt | add 2}}:9092
-                KAFKA_DEFAULT_REPLICATION_FACTOR = 3
+                CONFLUENT_VERSION=4.1.1-2
+                SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL=192.168.33.11:2181,192.168.33.12:2181,192.168.33.13:2181
+                SCHEMA_REGISTRY_LISTENERS=http://0.0.0.0:8081
+                SCHEMA_REGISTRY_DEBUG=true
+                SCHEMA_REGISTRY_HOST_NAME=node2
+                SCHEMA_REGISTRY_AVRO_COMPATIBILITY_LEVEL=backward_transitive
               EOT
-              destination = "kafka-env/kafka.env"
+              destination = "schema-registry-env/schema-registry.env"
               env         = true
             }
             config {
-                image = "confluentinc/cp-kafka:4.1.1-2"
-                hostname = "${KAFKA_ADVERTISED_HOSTNAME}"
+                image = "confluentinc/cp-schema-registry:${CONFLUENT_VERSION}"
                 labels {
                     group = "confluent-schema-registry"
                 }
@@ -71,39 +72,39 @@ job "kafka" {
                     "node4:192.168.33.13"
                 ]
                 port_map {
-                    kafka = 8081
+                    sr = 8081
                 }
                 volumes = [
-                    "/opt/schema-registry/data:/var/lib/schema-registry/data",
                     "/opt/schema-registry/secrets:/etc/schema-registry/secrets"
                 ]
             }
             resources {
-                cpu = 1000
-                memory = 512
+                cpu = 200
+                memory = 256
                 network {
-                    mbits = 10
+                    mbits = 1
                     port "sr" {
-                      static = 9092
+                      static = 8081
                     }
                 }
             }
             service {
+                name = "schema-registry"
                 tags = ["schema-registry"]
                 port = "sr"
                 address_mode = "driver"
-# TODO - Need to add a health check
-#                check {
-#                    type = "tcp"
-#                    port = "sr"
-#                    interval = "10s"
-#                    timeout = "2s"
-#                    check_restart {
-#                        limit = 3
-#                        grace = "90s"
-#                        ignore_warnings = false
-#                    }
-#                }
+                check {
+                    type = "http"
+                    port = "sr"
+                    path = "/"
+                    interval = "10s"
+                    timeout = "2s"
+                    check_restart {
+                        limit = 3
+                        grace = "90s"
+                        ignore_warnings = false
+                    }
+                }
             }
         }
     }
