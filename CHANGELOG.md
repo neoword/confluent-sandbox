@@ -1,11 +1,12 @@
 # CHANGELOG
 
 ## v0.3
+* Add support for confluent schema-registry (#12, #9)
 * Clean kafka dir scripts added (#11)
 * Add meta.constraint that is Kafka specific (#10)
 
 ## v0.2
-* Add support for confluent kafka ( #7 )
+* Add support for confluent kafka (#7)
 
 ## v0.1
 * Initial version
