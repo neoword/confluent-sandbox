@@ -1,4 +1,5 @@
-# Zookeeper
+# Nomad job for kafka
+# DISCLAIMER: This is intended for learning purposes only. It has not been tested for PRODUCTION environments.
 job "kafka" {
     region = "global"
     datacenters = ["dc1"]
@@ -48,18 +49,19 @@ job "kafka" {
             template {
               data        = <<EOT
                 # generated at deployment
+                CONFLUENT_VERSION = 4.1.1-2
                 {{$i := env "NOMAD_ALLOC_INDEX"}}
-                KAFKA_BROKER_ID             = {{$i | parseInt | add 1}}
-                KAFKA_ZOOKEEPER_CONNECT     = node2:2181,node3:2181,node4:2181
-                KAFKA_ADVERTISED_HOSTNAME   = {{if eq $i "0"}}node2{{else}}{{if eq $i "1"}}node3{{else}}node4{{end}}{{end}}
-                KAFKA_ADVERTISED_LISTENERS  = PLAINTEXT://node{{$i | parseInt | add 2}}:9092
-                KAFKA_DEFAULT_REPLICATION_FACTOR = 3
+                KAFKA_BROKER_ID={{$i | parseInt | add 1}}
+                KAFKA_ZOOKEEPER_CONNECT=node2:2181,node3:2181,node4:2181
+                KAFKA_ADVERTISED_HOSTNAME={{if eq $i "0"}}node2{{else}}{{if eq $i "1"}}node3{{else}}node4{{end}}{{end}}
+                KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://node{{$i | parseInt | add 2}}:9092
+                KAFKA_DEFAULT_REPLICATION_FACTOR=3
               EOT
               destination = "kafka-env/kafka.env"
               env         = true
             }
             config {
-                image = "confluentinc/cp-kafka:4.1.1-2"
+                image = "confluentinc/cp-kafka:${CONFLUENT_VERSION}"
                 hostname = "${KAFKA_ADVERTISED_HOSTNAME}"
                 labels {
                     group = "confluent-kafka"
@@ -82,13 +84,14 @@ job "kafka" {
                 cpu = 1000
                 memory = 512
                 network {
-                    mbits = 10
+                    mbits = 5
                     port "kafka" {
                       static = 9092
                     }
                 }
             }
             service {
+                name = "kafka"
                 tags = ["kafka"]
                 port = "kafka"
                 address_mode = "driver"
