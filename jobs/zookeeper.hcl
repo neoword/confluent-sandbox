@@ -61,7 +61,7 @@ job "zookeeper" {
               env         = true
             }
             config {
-                image = "confluentinc/cp-zookeeper:${CONFLUENT_VERSION}"
+                image = "node2:5000/cp-zookeeper:${CONFLUENT_VERSION}"
                 hostname = "${ZOOKEEPER_HOST}"
                 labels {
                     group = "confluent-zk"

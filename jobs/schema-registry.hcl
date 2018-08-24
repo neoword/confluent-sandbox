@@ -17,9 +17,7 @@ job "schema-registry" {
         value = "linux"
     }
 
-    # ensure we are only on the nodes that have kafka enabled... ensure these are only 3 nodes
-    # TODO - Need to add meta.kafka to be kafka specific (#8)
-    # TODO - Right now piggy-back on ZK meta. Need to add a separate, distinct kafka meta.
+    # ensure we are only on the nodes that have schema-registry enabled...
     constraint {
         attribute = "${meta.schema-registry}"
         value = "true"
@@ -61,7 +59,7 @@ job "schema-registry" {
               env         = true
             }
             config {
-                image = "confluentinc/cp-schema-registry:${CONFLUENT_VERSION}"
+                image = "node2:5000/cp-schema-registry:${CONFLUENT_VERSION}"
                 labels {
                     group = "confluent-schema-registry"
                 }
