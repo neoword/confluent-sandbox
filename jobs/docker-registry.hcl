@@ -16,10 +16,9 @@ job "docker-registry" {
         value = "linux"
     }
 
-    # ensure we are only on the nodes that have schema-registry enabled...
-    # NOTE: piggybacking on schema-registry here
+    # ensure we are only on the nodes that have docker-registry enabled...
     constraint {
-        attribute = "${meta.schema-registry}"
+        attribute = "${meta.docker-registry}"
         value = "true"
     }
 
