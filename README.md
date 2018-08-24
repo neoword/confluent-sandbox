@@ -17,6 +17,16 @@ running vagrant node.
 > bin/init-node.sh
 ```
 
+### Start docker-registry
+```
+> # to start docker-registry
+> bin/start.sh docker-registry
+
+> # to stop docker-registry
+> bin/stop.sh docker-registry
+```
+
+### Pre-cache images
 Ensure the docker images are pre-loaded on each node.
 
 ```

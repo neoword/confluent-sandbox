@@ -1,6 +1,6 @@
-# Nomad job for kafka
+# Nomad job for docker-registry
 # DISCLAIMER: This is intended for learning purposes only. It has not been tested for PRODUCTION environments.
-job "kafka" {
+job "docker-registry" {
     region = "global"
     datacenters = ["dc1"]
     type = "service"
@@ -16,23 +16,18 @@ job "kafka" {
         value = "linux"
     }
 
-    # ensure we are only on the nodes that have kafka enabled... ensure these are only 3 nodes
+    # ensure we are only on the nodes that have schema-registry enabled...
+    # NOTE: piggybacking on schema-registry here
     constraint {
-        attribute = "${meta.kafka}"
+        attribute = "${meta.schema-registry}"
         value = "true"
     }
 
     # define group
-    group "kafka-group" {
+    group "docker-registry-group" {
 
         # define the number of times the tasks need to be executed
-        count = 3
-
-        # ensure we are on 3 different nodes
-        constraint {
-            operator  = "distinct_hosts"
-            value     = "true"
-        }
+        count = 1
 
         # specify the number of attemtps to run the job within the specified interval
         restart {
@@ -42,27 +37,19 @@ job "kafka" {
             mode = "fail"
         }
 
-        task "kafka" {
+        task "docker-registry" {
             driver = "docker"
             template {
               data        = <<EOT
                 # generated at deployment
-                CONFLUENT_VERSION = 4.1.1-2
-                {{$i := env "NOMAD_ALLOC_INDEX"}}
-                KAFKA_BROKER_ID={{$i | parseInt | add 1}}
-                KAFKA_ZOOKEEPER_CONNECT=node2:2181,node3:2181,node4:2181
-                KAFKA_ADVERTISED_HOSTNAME={{if eq $i "0"}}node2{{else}}{{if eq $i "1"}}node3{{else}}node4{{end}}{{end}}
-                KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://node{{$i | parseInt | add 2}}:9092
-                KAFKA_DEFAULT_REPLICATION_FACTOR=3
               EOT
-              destination = "kafka-env/kafka.env"
+              destination = "docker-registry-env/docker-registr.env"
               env         = true
             }
             config {
-                image = "node2:5000/cp-kafka:${CONFLUENT_VERSION}"
-                hostname = "${KAFKA_ADVERTISED_HOSTNAME}"
+                image = "registry:2"
                 labels {
-                    group = "confluent-kafka"
+                    group = "docker-registry"
                 }
                 extra_hosts = [
                     "node1:192.168.33.10",
@@ -71,32 +58,29 @@ job "kafka" {
                     "node4:192.168.33.13"
                 ]
                 port_map {
-                    kafka = 9092
+                    dr = 5000
                 }
-                volumes = [
-                    "/opt/kafka/data:/var/lib/kafka/data",
-                    "/opt/kafka/secrets:/etc/kafka/secrets"
-                ]
+                volumes = []
             }
             resources {
-                cpu = 1000
-                memory = 512
+                cpu = 250
+                memory = 128
                 network {
                     mbits = 5
-                    port "kafka" {
-                      static = 9092
+                    port "dr" {
+                      static = 5000
                     }
                 }
             }
             service {
-                name = "kafka"
-                tags = ["kafka"]
-                port = "kafka"
+                name = "docker-registry"
+                tags = ["docker-registry"]
+                port = "dr"
                 address_mode = "driver"
 # TODO - Need to add a health check
 #                check {
 #                    type = "tcp"
-#                    port = "kafka"
+#                    port = "dr"
 #                    interval = "10s"
 #                    timeout = "2s"
 #                    check_restart {
