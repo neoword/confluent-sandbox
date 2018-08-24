@@ -20,5 +20,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Supports confluent-zookeeper (#3, #4)
 * Added CONTRIBUTING and CHANGELOG (#1, #5)
 
-[0.3]: https://github.com/neoword/confluent-sandbox/compare/v0.2...v0.3
-[0.2]: https://github.com/neoword/confluent-sandbox/compare/v0.1...v0.2
+[v0.3]: https://github.com/neoword/confluent-sandbox/compare/v0.2...v0.3
+[v0.2]: https://github.com/neoword/confluent-sandbox/compare/v0.1...v0.2
