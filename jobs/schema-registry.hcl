@@ -49,7 +49,8 @@ job "schema-registry" {
               data        = <<EOT
                 # generated at deployment
                 CONFLUENT_VERSION=4.1.1-2
-                SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL=192.168.33.11:2181,192.168.33.12:2181,192.168.33.13:2181
+                SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL=node2:2181,node3:2181,node4:2181
+                SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS=PLAINTEXT://node2:9092,PLAINTEXT://node3:9092,PLAINTEXT://node4:9092
                 SCHEMA_REGISTRY_LISTENERS=http://0.0.0.0:8081
                 SCHEMA_REGISTRY_DEBUG=true
                 SCHEMA_REGISTRY_HOST_NAME=node2

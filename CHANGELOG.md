@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 * Add support for docker registry (#15)
 
+### Changed
+* Fixed schema-registry fails to start (#18)
+* Adding bootstrap servers to schema-registry config (#19)
+
 ## [v0.3] - 20180822
 ### Added
 * Add support for confluent schema-registry (#12, #9)

@@ -60,7 +60,6 @@ job "kafka" {
             }
             config {
                 image = "node2:5000/cp-kafka:${CONFLUENT_VERSION}"
-                hostname = "${KAFKA_ADVERTISED_HOSTNAME}"
                 labels {
                     group = "confluent-kafka"
                 }
