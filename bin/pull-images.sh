@@ -9,13 +9,10 @@ for node in ${NODES}; do
   vagrant ssh ${NODE_ID} -c "docker pull confluentinc/cp-kafka:${CONFLUENT_VERSION}"
   if [[ "${node}" =~ "node2" ]]; then
     vagrant ssh ${NODE_ID} -c "docker pull confluentinc/cp-schema-registry:${CONFLUENT_VERSION}"
-    vagrant ssh ${NODE_ID} -c "docker pull registry:2"
     CONFLUENT_IMAGES="cp-zookeeper:${CONFLUENT_VERSION} cp-kafka:${CONFLUENT_VERSION} cp-schema-registry:${CONFLUENT_VERSION}"
     for image in ${CONFLUENT_IMAGES}; do
       vagrant ssh ${NODE_ID} -c "docker tag confluentinc/${image} node2:5000/${image}"
       vagrant ssh ${NODE_ID} -c "docker push node2:5000/${image}"
     done
-    vagrant ssh ${NODE_ID} -c "docker tag registry:2 node2:5000/registry:2"
-    vagrant ssh ${NODE_ID} -c "docker push node2:5000/registry:2"
   fi
 done
