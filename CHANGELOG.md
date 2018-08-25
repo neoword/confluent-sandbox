@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [v0.4] - Unreleased
 ### Added
 * Add support for docker registry (#15)
+* Added 256M memory to kafka container
 
 ### Changed
 * Fixed schema-registry fails to start (#18)

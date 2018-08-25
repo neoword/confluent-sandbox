@@ -79,7 +79,7 @@ job "kafka" {
             }
             resources {
                 cpu = 1000
-                memory = 512
+                memory = 768
                 network {
                     mbits = 5
                     port "kafka" {
